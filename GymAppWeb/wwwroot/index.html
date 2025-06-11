@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gym Progress Tracker</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script crossorigin src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        function App() {
+            const [entries, setEntries] = React.useState([]);
+            const [exercise, setExercise] = React.useState('');
+            const [reps, setReps] = React.useState(0);
+
+            React.useEffect(() => {
+                fetch('/api/progress')
+                    .then(r => r.json())
+                    .then(setEntries);
+            }, []);
+
+            const addEntry = () => {
+                const entry = { exercise, reps: parseInt(reps) };
+                fetch('/api/progress', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(entry)
+                })
+                .then(r => r.json())
+                .then(newEntry => setEntries([...entries, newEntry]));
+            };
+
+            return (
+                <div>
+                    <h1>Gym Progress Tracker</h1>
+                    <div>
+                        <input placeholder="Exercise" value={exercise} onChange={e => setExercise(e.target.value)} />
+                        <input type="number" placeholder="Reps" value={reps} onChange={e => setReps(e.target.value)} />
+                        <button onClick={addEntry}>Add</button>
+                    </div>
+                    <ul>
+                        {entries.map((e, i) => (
+                            <li key={i}>{e.date || ''}: {e.exercise} - {e.reps} reps</li>
+                        ))}
+                    </ul>
+                </div>
+            );
+        }
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
